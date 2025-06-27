@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚁 VibeCode Helicopter - Built with Amazon Q</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #87CEEB, #4682B4);
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 3px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <script src="https://unpkg.com/kaboom@3000/dist/kaboom.js"></script>
+    <script>
+        kaboom({
+            width: 800,
+            height: 600,
+            background: [135, 206, 235]
+        });
+
+
+
+        scene("game", () => {
+            let score = 0;
+            let lives = 3;
+            let cloudSpeed = 100;
+
+            // Sky background
+            add([
+                rect(800, 600),
+                pos(0, 0),
+                color(135, 206, 235),
+                z(-2)
+            ]);
+
+            // Moving background clouds
+            for (let i = 0; i < 5; i++) {
+                add([
+                    circle(20),
+                    pos(rand(0, 800), rand(50, 150)),
+                    color(255, 255, 255),
+                    opacity(0.3),
+                    z(-1),
+                    "bgcloud"
+                ]);
+            }
+
+            // Helicopter (visual design)
+            const helicopter = add([
+                rect(50, 20),
+                pos(100, 300),
+                area(),
+                color(255, 69, 0),
+                "helicopter"
+            ]);
+
+            // Helicopter cockpit
+            add([
+                rect(25, 15),
+                pos(90, 295),
+                color(135, 206, 235),
+                opacity(0.7),
+                "cockpit"
+            ]);
+
+            // Main rotor
+            add([
+                rect(70, 3),
+                pos(85, 285),
+                color(128, 128, 128),
+                "rotor"
+            ]);
+
+            // Tail
+            add([
+                rect(25, 8),
+                pos(150, 306),
+                color(255, 140, 0),
+                "tail"
+            ]);
+
+            // Tail rotor
+            add([
+                rect(3, 15),
+                pos(172, 300),
+                color(128, 128, 128),
+                "tailrotor"
+            ]);
+
+            // Controls
+            onKeyDown("space", () => {
+                helicopter.move(0, -200);
+            });
+
+            onKeyDown("up", () => {
+                helicopter.move(0, -200);
+            });
+
+            // Gravity effect
+            helicopter.onUpdate(() => {
+                helicopter.move(0, 150);
+                
+                // Keep helicopter on screen
+                if (helicopter.pos.y < 0) helicopter.pos.y = 0;
+                if (helicopter.pos.y > 560) helicopter.pos.y = 560;
+                
+                // Update helicopter parts positions
+                get("cockpit")[0].pos = vec2(helicopter.pos.x - 10, helicopter.pos.y - 5);
+                get("rotor")[0].pos = vec2(helicopter.pos.x - 15, helicopter.pos.y - 15);
+                get("tail")[0].pos = vec2(helicopter.pos.x + 50, helicopter.pos.y + 6);
+                get("tailrotor")[0].pos = vec2(helicopter.pos.x + 72, helicopter.pos.y);
+            });
+
+            // Spawn clouds
+            loop(2, () => {
+                const cloudY = rand(50, 550);
+                const cloudColor = choose([
+                    [200, 200, 200],
+                    [220, 220, 220],
+                    [180, 180, 180],
+                    [240, 240, 240]
+                ]);
+
+                // Main cloud body
+                add([
+                    circle(30),
+                    pos(850, cloudY),
+                    area(),
+                    color(...cloudColor),
+                    "cloud",
+                    { passed: false }
+                ]);
+
+                // Cloud details
+                add([
+                    circle(20),
+                    pos(870, cloudY - 10),
+                    color(...cloudColor),
+                    "cloudpart"
+                ]);
+
+                add([
+                    circle(25),
+                    pos(830, cloudY + 5),
+                    color(...cloudColor),
+                    "cloudpart"
+                ]);
+            });
+
+            // Move clouds and background
+            onUpdate(() => {
+                // Move obstacle clouds
+                get("cloud").forEach(cloud => {
+                    cloud.move(-cloudSpeed, 0);
+                    
+                    // Check if passed
+                    if (!cloud.passed && cloud.pos.x < helicopter.pos.x) {
+                        cloud.passed = true;
+                        score++;
+                        scoreText.text = "Score: " + score;
+                        
+                        // Increase difficulty
+                        if (score % 5 === 0) {
+                            cloudSpeed += 10;
+                        }
+                    }
+                    
+                    // Remove off-screen clouds
+                    if (cloud.pos.x < -50) {
+                        destroy(cloud);
+                    }
+                });
+
+                // Move cloud parts
+                get("cloudpart").forEach(part => {
+                    part.move(-cloudSpeed, 0);
+                    if (part.pos.x < -50) {
+                        destroy(part);
+                    }
+                });
+
+                // Move background clouds
+                get("bgcloud").forEach(bgcloud => {
+                    bgcloud.move(-20, 0);
+                    if (bgcloud.pos.x < -50) {
+                        bgcloud.pos.x = 850;
+                        bgcloud.pos.y = rand(50, 150);
+                    }
+                });
+            });
+
+            // Collision detection
+            helicopter.onCollide("cloud", () => {
+                lives--;
+                livesText.text = "Lives: " + lives;
+                
+                // Flash effect
+                helicopter.color = rgb(255, 255, 255);
+                wait(0.1, () => {
+                    helicopter.color = rgb(255, 69, 0);
+                });
+                
+                if (lives <= 0) {
+                    go("gameover", score);
+                }
+            });
+
+            // UI Elements
+            add([
+                text("🚁 VIBECODER HELICOPTER 🚁", {
+                    size: 20
+                }),
+                pos(center().x, 20),
+                anchor("center"),
+                color(255, 215, 0),
+                fixed()
+            ]);
+
+            add([
+                text("Built with VibeCode & Amazon Q - Coder ID: vibecoder999", {
+                    size: 10
+                }),
+                pos(center().x, 45),
+                anchor("center"),
+                color(255, 255, 255),
+                fixed()
+            ]);
+
+            const scoreText = add([
+                text("Score: 0", {
+                    size: 18
+                }),
+                pos(20, 70),
+                color(255, 255, 255),
+                fixed()
+            ]);
+
+            const livesText = add([
+                text("Lives: 3", {
+                    size: 18
+                }),
+                pos(20, 95),
+                color(255, 100, 100),
+                fixed()
+            ]);
+
+            add([
+                text("Hold SPACE or UP to fly!", {
+                    size: 14
+                }),
+                pos(20, 120),
+                color(255, 255, 255),
+                fixed()
+            ]);
+        });
+
+        scene("gameover", (finalScore) => {
+            add([
+                text("🚁💥 HELICOPTER CRASHED! 💥🚁", {
+                    size: 32
+                }),
+                pos(center()),
+                anchor("center"),
+                color(255, 0, 0)
+            ]);
+
+            add([
+                text("Final Score: " + finalScore, {
+                    size: 24
+                }),
+                pos(center().x, center().y + 50),
+                anchor("center"),
+                color(255, 215, 0)
+            ]);
+
+            add([
+                text("Press SPACE to restart", {
+                    size: 18
+                }),
+                pos(center().x, center().y + 100),
+                anchor("center"),
+                color(255, 255, 255)
+            ]);
+
+            add([
+                text("Built with VibeCode & Amazon Q", {
+                    size: 12
+                }),
+                pos(center().x, center().y + 150),
+                anchor("center"),
+                color(200, 200, 200)
+            ]);
+
+            onKeyPress("space", () => {
+                go("game");
+            });
+        });
+
+        go("game");
+    </script>
+</body>
+</html>
