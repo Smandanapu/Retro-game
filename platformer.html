@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vibecoder-Mario Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #87CEEB;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://unpkg.com/kaboom@3000/dist/kaboom.js"></script>
+    <script>
+        // Initialize Kaboom
+        kaboom({
+            width: 800,
+            height: 600,
+            background: [135, 206, 235]
+        });
+
+        // Load assets
+        loadSprite("player", "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjRkY2B0IwIi8+CjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iI0ZGRkZGRiIvPgo8L3N2Zz4K");
+
+        // Game scene
+        scene("game", () => {
+            // Set gravity
+            setGravity(1600);
+
+            // Score
+            let score = 0;
+
+            // Scrolling background
+            add([
+                rect(1600, 600),
+                pos(0, 0),
+                color(100, 150, 200),
+                z(-1)
+            ]);
+
+            for (let i = 0; i < 10; i++) {
+                add([
+                    circle(3),
+                    pos(rand(0, 1600), rand(50, 200)),
+                    color(255, 255, 255),
+                    z(-1)
+                ]);
+            }
+
+            // Create ground platforms
+            add([
+                rect(1200, 100),
+                pos(0, 500),
+                area(),
+                body({ isStatic: true }),
+                color(139, 69, 19),
+                "ground"
+            ]);
+
+            // Level exit
+            add([
+                rect(20, 100),
+                pos(1180, 400),
+                area(),
+                color(0, 255, 0),
+                "exit"
+            ]);
+
+            add([
+                rect(200, 20),
+                pos(300, 400),
+                area(),
+                body({ isStatic: true }),
+                color(139, 69, 19),
+                "ground"
+            ]);
+
+            add([
+                rect(150, 20),
+                pos(600, 300),
+                area(),
+                body({ isStatic: true }),
+                color(139, 69, 19),
+                "ground"
+            ]);
+
+            // Create coins
+            add([
+                circle(8),
+                pos(350, 350),
+                area(),
+                color(255, 215, 0),
+                "coin"
+            ]);
+
+            add([
+                circle(8),
+                pos(650, 250),
+                area(),
+                color(255, 215, 0),
+                "coin"
+            ]);
+
+            add([
+                circle(8),
+                pos(200, 450),
+                area(),
+                color(255, 215, 0),
+                "coin"
+            ]);
+
+            // Create enemy
+            const enemy = add([
+                rect(24, 24),
+                pos(320, 376),
+                area(),
+                body({ isStatic: true }),
+                color(255, 0, 255),
+                "enemy"
+            ]);
+
+            let enemyDir = 1;
+            enemy.onUpdate(() => {
+                enemy.move(enemyDir * 50, 0);
+                if (enemy.pos.x > 480 || enemy.pos.x < 320) {
+                    enemyDir *= -1;
+                }
+            });
+
+            // Create player
+            const player = add([
+                rect(32, 32),
+                pos(100, 400),
+                area(),
+                body(),
+                color(255, 0, 0),
+                "player"
+            ]);
+
+            // Player controls
+            onKeyDown("left", () => {
+                player.move(-200, 0);
+            });
+
+            onKeyDown("right", () => {
+                player.move(200, 0);
+            });
+
+            onKeyPress("space", () => {
+                if (player.isGrounded()) {
+                    player.jump(600);
+                }
+            });
+
+            // Alternative jump with up arrow
+            onKeyPress("up", () => {
+                if (player.isGrounded()) {
+                    player.jump(800);
+                }
+            });
+
+            // Camera follows player
+            player.onUpdate(() => {
+                camPos(player.pos.x, 300);
+            });
+
+            // Coin collection
+            player.onCollide("coin", (coin) => {
+                destroy(coin);
+                score++;
+                scoreText.text = "Score: " + score;
+            });
+
+            // Enemy collision
+            player.onCollide("enemy", () => {
+                go("gameover");
+            });
+
+            // Level transition
+            player.onCollide("exit", () => {
+                go("level2");
+            });
+
+            // Reset if player falls
+            player.onUpdate(() => {
+                if (player.pos.y > 700) {
+                    player.pos = vec2(100, 400);
+                }
+            });
+
+            // Score display
+            const scoreText = add([
+                text("Score: 0", {
+                    size: 20
+                }),
+                pos(20, 55),
+                color(255, 255, 255),
+                fixed()
+            ]);
+
+            // Game title
+            add([
+                text("🍄 VIBECODER MARIO 🍄", {
+                    size: 24
+                }),
+                pos(center().x, 10),
+                anchor("center"),
+                color(255, 215, 0),
+                fixed()
+            ]);
+
+            add([
+                text("Built with VibeCode & Amazon Q - Coder ID: vibecoder999", {
+                    size: 12
+                }),
+                pos(center().x, 35),
+                anchor("center"),
+                color(255, 255, 255),
+                fixed()
+            ]);
+
+            // Instructions
+            add([
+                text("Use ARROW KEYS to move, SPACE or UP to jump", {
+                    size: 16
+                }),
+                pos(20, 70),
+                color(255, 255, 255),
+                fixed()
+            ]);
+        });
+
+        // Level 2 scene
+        scene("level2", () => {
+            setGravity(1600);
+
+            // Background
+            add([
+                rect(1600, 600),
+                pos(0, 0),
+                color(80, 120, 160),
+                z(-1)
+            ]);
+
+            // Ground
+            add([
+                rect(1200, 100),
+                pos(0, 500),
+                area(),
+                body({ isStatic: true }),
+                color(100, 50, 0)
+            ]);
+
+            // Player
+            const player = add([
+                rect(32, 32),
+                pos(100, 400),
+                area(),
+                body(),
+                color(255, 0, 0)
+            ]);
+
+            // Controls
+            onKeyDown("left", () => player.move(-200, 0));
+            onKeyDown("right", () => player.move(200, 0));
+            onKeyPress("space", () => {
+                if (player.isGrounded()) player.jump(600);
+            });
+
+            player.onUpdate(() => camPos(player.pos.x, 300));
+
+            add([
+                text("Level 2! Press R to restart", {
+                    size: 20
+                }),
+                pos(20, 20),
+                color(255, 255, 255),
+                fixed()
+            ]);
+
+            onKeyPress("r", () => go("game"));
+        });
+
+        // Game Over scene
+        scene("gameover", () => {
+            add([
+                text("GAME OVER", {
+                    size: 48
+                }),
+                pos(center()),
+                anchor("center"),
+                color(255, 0, 0)
+            ]);
+
+            add([
+                text("Press SPACE to restart", {
+                    size: 24
+                }),
+                pos(center().x, center().y + 60),
+                anchor("center"),
+                color(255, 255, 255)
+            ]);
+
+            onKeyPress("space", () => {
+                go("game");
+            });
+        });
+
+        // Start the game
+        go("game");
+    </script>
+</body>
+</html>

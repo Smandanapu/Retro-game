@@ -1,0 +1,79 @@
+in chat gpt asked for the plan with this prompt:
+i want to build a super mario type game that i can play in my browser , 
+ i dont know how to code  i want to use amazaon Q to build this,
+  can you help me with come up with a plan and  teach me the basics of what i need know before i continue
+
+
+
+  High-Level Plan
+Phase 1: Learn the Basics
+Before using Amazon Q effectively, you'll need some foundational knowledge.
+
+Understand What Tools You'll Use:
+
+HTML: Structure of the webpage (where your game will live).
+
+CSS: Styles to make it look good.
+
+JavaScript: Logic of the game (movement, jumping, scoring).
+
+Amazon Q: AI assistant inside IDEs like AWS Cloud9 or VS Code that can write code for you.
+
+Game Framework: We’ll use Phaser.js, a beginner-friendly game engine for browser games.
+
+Set Up a Workspace:
+
+You can use AWS Cloud9 (free tier eligible) to code in the cloud, or use VS Code locally.
+
+Amazon Q works inside both with the correct plugin.
+
+🛠️ Phase 2: Create a Starter Game with Amazon Q
+Ask Amazon Q to Create a Phaser.js Starter Project:
+
+"Create a Phaser 3 starter template with a player that can move left, right, and jump on platforms."
+
+Review the Code with Amazon Q:
+
+Ask: “Can you explain what this code does?”
+
+You’ll learn by reading Q’s explanations in plain English.
+
+Run Your Game in the Browser:
+
+Amazon Q will help set up a local web server or guide you to preview it.
+
+You can hit "Run" in Cloud9 or open index.html in your browser.
+
+🎨 Phase 3: Customize Your Game
+With Q’s help, you can:
+
+Replace the player sprite with Mario-style graphics.
+
+Add enemies (like Goombas).
+
+Add coins, scoring, and levels.
+
+Add a start and game-over screen.
+
+Example prompt to Q:
+
+“Add an enemy that moves left and right on a platform and damages the player if touched.”
+
+🌐 Phase 4: Host It Online
+When your game is ready:
+
+Use Amazon S3 + CloudFront to host the game as a static website.
+
+Amazon Q can guide you through the deployment process.
+
+📘 What You Should Learn (Minimal Coding Knowledge)
+What is HTML/CSS/JS – Just a very basic understanding.
+
+How to talk to Amazon Q effectively – Treat it like a teammate:
+
+Be specific: “Add a jump animation when the player jumps.”
+
+Ask for explanations: “What does this function do?”
+
+How to preview/run code – You’ll learn this as we go.
+
