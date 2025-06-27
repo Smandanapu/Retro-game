@@ -1,4 +1,4 @@
-in chat gpt asked for the plan with this prompt:
+ prompt:
 i want to build a super mario type game that i can play in my browser , 
  i dont know how to code  i want to use amazaon Q to build this,
   can you help me with come up with a plan and  teach me the basics of what i need know before i continue
